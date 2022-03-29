@@ -16,15 +16,17 @@ class Middleware:
         docker_containers = self.client.containers.list()
         for container in docker_containers:
             self.containers.append(container.id)
+            print(container.id)
 
     def discover_device_names(self):
         '''
         Stores names of each virtual network device for monitoring
         Used by pyshark for watching DNS requests
         '''
-        network_list = client.networks.list()
-        for network in network_list:
-            pass
+        pass
+        # network_list = client.networks.list()
+        # for network in network_list:
+        #     print(network.name)
 
     def set_threshold(self, num_containers):
         self.num_containers = num_containers
