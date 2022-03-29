@@ -3,72 +3,76 @@ class PopTracker:
         self.entries = {}
         self.verbose = verbose
 
-    def addEntry(self, ip):
+    def add_entry(self, ip, container_id):
         '''
         Adds a new cache entry to structure
         '''
         if ip not in self.entries:
-            self.entries.update({ip: []}) # Could use dictionary and remove checks
-        else:
-            print("Element already exists")
+            self.entries.update({ip: [container_id]})
 
-    def delEntry(self, ip):
+    def del_entry(self, ip):
         '''
         Drops IP address from structure
         '''
         if ip in this.entries:
             this.entries.pop(ip)
 
-    def addNewContainerToList(self, ip, containerId):
+    def add_new_container_to_list(self, ip, container_id):
         '''
         Adds new container to list for particular ip address
         '''
-        if ip in self.entries:
-            containers = self.entries[ip]
-            if containerId not in containers:
-                containers.append(containerId)
-                self.entries[ip] = containers
+        try:
+            containers = self.entries.get(ip)
+        except KeyError:
+            raise KeyError("Could not find IP in list")
+        else:
+            if container_id not in containers:
+                containers.append(container_id)
+                sefl.entries.update({ip: containers})
 
-    def delContainerFromList(self, ip, containerId):
+    def del_container_from_list(self, ip, container_id):
         '''
         Removes given container from the list
         '''
-        if ip in self.entries:
-            containers = self.entries[ip]
-            if containerId in containers:
-                containers.remove(containerId)
-                self.entries[ip] = containers
-
-    def getCount(self, ip):
-        '''
-        Returns number of unique containers to access particular item
-        '''
-        if ip in self.entries:
-            return len(self.entries[ip])
+        try:
+            containers = self.entries.get(ip)
+        except KeyError:
+            raise KeyError("Could not find ip in list")
         else:
-            return -1
+            if container_id in containers:
+                containers.remove(container_id)
+                self.entries.update({ip: containers})
 
-    def listContainers(self, ip):
+    def get_count(self, ip):
+        '''
+        Returns number of unique containers to access
+        particular item or -1 if the item doesn't exist
+        '''
+        if ip in self.entries:
+            return len(self.entries.get(ip))
+        return -1
+
+    def get_containers(self, ip):
         '''
         Returns list of unique containers to access particular item
         '''
         if ip in self.entries:
-            return self.entries[ip]
-        
+            return self.entries.get(ip)
+        else:
+            return None
 
-    def checkIpExists(self, ip):
+    def check_ip_exists(self, ip):
         '''
         Checks if the given ip exists in the structure
         '''
         return True if ip in self.entries else False
     
-    def checkContainerInList(self, ip, containerId):
+    def check_container_in_list(self, ip, container_id):
         '''
         Checks if the given container is listed for the given IP address
         '''
         if ip in self.entries:
-            return True if containerId in self.entries[ip] else False
-        else:
-            return False
+            return True if container_id in self.entries.get(ip) else False
+        return False
 
 
