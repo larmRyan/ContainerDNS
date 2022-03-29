@@ -74,5 +74,3 @@ class PopTracker:
         if ip in self.entries:
             return True if container_id in self.entries.get(ip) else False
         return False
-
-

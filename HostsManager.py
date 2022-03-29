@@ -1,5 +1,6 @@
 from os.path import exists
 import utils
+
 class HostsManager:
 
     def __init__(self, path):
@@ -24,7 +25,7 @@ class HostsManager:
 
     def remove_host(self, ip):
         if ip in self.entries:
-            self.entripes.pop(ip)
+            self.entries.pop(ip)
             self.update_host_file()
 
     def update_host_file(self):
