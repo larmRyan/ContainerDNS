@@ -10,3 +10,8 @@ def list_to_dict(entries_list):
         entries_dict.update({ip: url})
     return entries_dict
 
+
+def parse_response(respone):
+    url = response.split(' ')[5]
+    ip = response.split(' ')[7]
+    return (ip, url)

@@ -3,6 +3,7 @@ import docker
 # import PopTracker
 from PopTracker import PopTracker
 # from pyshark import LiveCapture
+import utils
 
 # Name of the virtual network device created with docker's default
 # network configuration. Might need to programmatically discover
@@ -85,4 +86,7 @@ if __name__ == "__main__":
             pack = packet
             break
 
+    ip, url = parse_response(pack.info)
     print(pack.info)
+    print(ip)
+    print(url)
