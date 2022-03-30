@@ -1,4 +1,5 @@
 class PopTracker:
+
     def __init__(self, verbose=False):
         self.entries = {}
         self.verbose = verbose

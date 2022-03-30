@@ -1,14 +1,33 @@
 import pyshark
 import docker
-import PopTracker
+# import PopTracker
+from PopTracker import PopTracker
+# from pyshark import LiveCapture
+
+# Name of the virtual network device created with docker's default
+# network configuration. Might need to programmatically discover
+# them later when we have many containers, but for now all DNS requests
+# from a container should be routed through docker0
+net_device_name = "docker0"
+
+# BPF for DNS queries
+# Might change later to only include DNS responses rather than all queries
+bpf = "port 53"
 
 class Middleware:
 
     def __init__(self):
         self.containers = []
+        self.networks = []
         self.client = docker.from_env()
         self.threshold = 1
         self.tracker = PopTracker()
+        # self.capture = None
+        self.capture = pyshark.LiveCapture(
+            interface=net_device_name,
+            bpf_filter=bpf,
+            only_summaries=True
+        )
 
     def discover_containers(self):
         '''
@@ -19,15 +38,22 @@ class Middleware:
         for container in docker_containers:
             self.containers.append(container.id)
 
-    def discover_device_names(self):
+    def discover_device_names(self, summary=True):
         '''
         Stores names of each virtual network device for monitoring
         Used by pyshark for watching DNS requests (e.g. eth0)
+
+        :param summary: Only display a summary of the DNS packet
         '''
-        pass
         # network_list = client.networks.list()
         # for network in network_list:
         #     print(network.name)
+        self.networks.append(net_device_name)
+        '''self.capture = pyshark.LiveCapture(
+            interface=self.networks[0],
+            bpf_filter=bpf,
+            only_summaries=summary
+        )'''
 
     def set_threshold(self, num_containers):
         self.threshold = num_containers
@@ -41,42 +67,16 @@ class Middleware:
     def del_entry_from_tracker(self, ip, container_id):
         self.tracker.del_entry(ip, contaienr_id)
 
+    def get_capture(self):
+        return self.capture
+
 if __name__ == "__main__":
 
     # Configure the middleware instance
     middleware = Middleware()
     middleware.discover_containers()
     middleware.discover_device_names()
+    capture = middleware.get_capture()
 
-
-    '''
-    # TODO / ALGO
-
-    - Create middleware instance
-        - The instance should then discover any containers and network devices for tracking
-    - Register the containers for tracking
-
-    When an entry is detected by pyshark:
-
-    procedure entry_found
-        Send entry with ip / container id to the tracker
-        tracker should test that:
-            1. Is the ip being tracked
-            2. Is the container already in the list for that ip
-            3. If it is then skip it
-            4. else add the entry to the list
-        Check popularity for given item
-            if the popularity = threshold
-                remove the entry from all containers hosts file
-            else
-                write the entry to the hosts file for that container
-
-
-    # General
-
-    - Threshold should be configuraable in the manager
-    - Manager should periodically query for new containers (say every 5 minutes) (do later)
-    - Manager should then check for new network devices (again every 5 min but do later)
-        - This period should be configurable
-    - Will need to parse arguments for this configuration options
-    '''
+    for packet in capture.sniff_continuously():
+        print(packet)
