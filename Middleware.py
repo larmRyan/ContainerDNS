@@ -65,7 +65,7 @@ class Middleware:
         self.tracker.add_entry(ip, container_id)
 
     def del_entry_from_tracker(self, ip, container_id):
-        self.tracker.del_entry(ip, contaienr_id)
+        self.tracker.del_entry(ip, container_id)
 
     def get_capture(self):
         return self.capture
@@ -78,5 +78,11 @@ if __name__ == "__main__":
     middleware.discover_device_names()
     capture = middleware.get_capture()
 
+    pack = None
+
     for packet in capture.sniff_continuously():
-        print(packet)
+        if("response" in packet.info):
+            pack = packet
+            break
+
+    print(pack.info)
