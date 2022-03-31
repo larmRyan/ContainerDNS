@@ -43,3 +43,4 @@ class HostsManager:
             for item in self.entries.items():
                 (ip, url) = item
                 host_file.write(ip + "\t" + url + "\n")
+                host_file.flush()

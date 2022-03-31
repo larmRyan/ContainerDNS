@@ -20,8 +20,9 @@ address_field = "a"
 # Field name containing URL
 url_field = "resp_name"
 
-# Path to the file hosts file
-path = "/etc/hosts"
+# Path to the file hosts file OF THE CONTAINER. Should not be the /etc/hosts file of the host
+# path = "/etc/hosts"
+path = "/home/ubuntu/522_project/ContainerDNS/test/hosts"
 
 class Middleware:
 

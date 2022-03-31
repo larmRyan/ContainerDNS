@@ -9,7 +9,11 @@ def list_to_dict(entries_list):
         if entry.startswith("#") or entry.startswith("\n"):
             pass
         else:
-            ip, url = entry.split("\t", 1)
-            url = url.strip()
-            entries_dict.update({ip: url})
+            try:
+                ip = entry.split("\t")[0]
+                url = entry.split("\t")[1]
+                url = url.strip()
+                entries_dict.update({ip: url})
+            except:
+                pass
     return entries_dict
