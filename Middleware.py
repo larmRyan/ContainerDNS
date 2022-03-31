@@ -1,8 +1,7 @@
 import pyshark
 import docker
-# import PopTracker
 from PopTracker import PopTracker
-# from pyshark import LiveCapture
+from HostsManager import HostsManager
 import utils
 
 # Name of the virtual network device created with docker's default
@@ -15,6 +14,15 @@ net_device_name = "docker0"
 # Might change later to only include DNS responses rather than all queries
 bpf = "port 53"
 
+# The name of the field where the response address is
+address_field = "a"
+
+# Field name containing URL
+url_field = "resp_name"
+
+# Path to the file hosts file
+path = "/etc/hosts"
+
 class Middleware:
 
     def __init__(self):
@@ -23,12 +31,12 @@ class Middleware:
         self.client = docker.from_env()
         self.threshold = 1
         self.tracker = PopTracker()
-        # self.capture = None
         self.capture = pyshark.LiveCapture(
             interface=net_device_name,
             bpf_filter=bpf,
-            only_summaries=True
+            only_summaries=False
         )
+        self.manager = HostsManager(path)
 
     def discover_containers(self):
         '''
@@ -46,15 +54,7 @@ class Middleware:
 
         :param summary: Only display a summary of the DNS packet
         '''
-        # network_list = client.networks.list()
-        # for network in network_list:
-        #     print(network.name)
         self.networks.append(net_device_name)
-        '''self.capture = pyshark.LiveCapture(
-            interface=self.networks[0],
-            bpf_filter=bpf,
-            only_summaries=summary
-        )'''
 
     def set_threshold(self, num_containers):
         self.threshold = num_containers
@@ -71,6 +71,15 @@ class Middleware:
     def get_capture(self):
         return self.capture
 
+    def get_tracker(self):
+        return self.tracker
+    
+    def get_manager(self):
+        return self.manager
+
+    def get_containers(self, index):
+        return self.containers[index]
+
 if __name__ == "__main__":
 
     # Configure the middleware instance
@@ -78,15 +87,16 @@ if __name__ == "__main__":
     middleware.discover_containers()
     middleware.discover_device_names()
     capture = middleware.get_capture()
+    tracker = middleware.get_tracker()
+    manager = middleware.get_manager()
 
-    pack = None
+    ip = None
+    url = None
 
+    # Get the url and ip from DNS response packet
     for packet in capture.sniff_continuously():
-        if("response" in packet.info):
-            pack = packet
-            break
-
-    ip, url = parse_response(pack.info)
-    print(pack.info)
-    print(ip)
-    print(url)
+        if address_field in packet.dns.field_names:
+            ip = packet.dns.get(address_field)
+            url = packet.dns.get(url_field)
+            manager.add_host(ip, url)
+            tracker.add_entry(ip, 0)

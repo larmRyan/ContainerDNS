@@ -7,11 +7,6 @@ class HostsManager:
 
         # Try to create the file if it doesn't already
         # exist
-        try:
-            with open(path, "x") as file:
-                pass
-        except:
-            print("File already exists")
         self.path = path
         with open(self.path, "r") as file:
             self.entries = utils.list_to_dict(file.readlines())
@@ -44,7 +39,7 @@ class HostsManager:
         Updates contents of container's host file
         given current state of the 
         '''
-        with open(self.path, "w") as host_file:
+        with open(self.path, "a") as host_file:
             for item in self.entries.items():
                 (ip, url) = item
-                hosts_file.write(ip + "\t" + url + "\n")
+                host_file.write(ip + "\t" + url + "\n")
