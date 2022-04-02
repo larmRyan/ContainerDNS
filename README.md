@@ -11,7 +11,7 @@ Container DNS is meant to keep a a dedicated DNS cache for each container for sp
 3. PopTracker.py
     - Keep track of containers and threshold for requests/responses
 
-## Install and test (Tested on Ubuntu 18.04)
+## Install and test (Tested on Ubuntu 18.04. Python 3.9 required)
 
 1. First clone the repository and install the required modules in a virtual environment:
 
