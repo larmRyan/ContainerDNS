@@ -38,7 +38,7 @@ docker build -t project .
 
 6. Run the container
 ```
-docker run -it -v /media/sf_Project/Iter1/test:/etc project
+docker run -it -v <path to project directory>/test:/etc project
 ```
 This will lauch the container and give access to a bash shell.
 
