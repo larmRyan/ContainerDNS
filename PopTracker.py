@@ -15,8 +15,8 @@ class PopTracker:
         '''
         Drops IP address from structure
         '''
-        if ip in this.entries:
-            this.entries.pop(ip)
+        if ip in self.entries:
+            self.entries.pop(ip)
 
     def add_new_container_to_list(self, ip, container_id):
         '''
@@ -29,7 +29,7 @@ class PopTracker:
         else:
             if container_id not in containers:
                 containers.append(container_id)
-                sefl.entries.update({ip: containers})
+                self.entries.update({ip: containers})
 
     def del_container_from_list(self, ip, container_id):
         '''
