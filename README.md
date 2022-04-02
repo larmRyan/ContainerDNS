@@ -42,7 +42,7 @@ docker run -it -v <path to project directory>/test:/etc project
 ```
 This will lauch the container and give access to a bash shell.
 
-7. Send a ping command. An example is given below
+7. Send a ping command from the container. An example is given below
 ```
 ping -c 1 yahoo.com
 ```
