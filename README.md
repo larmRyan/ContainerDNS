@@ -11,9 +11,9 @@ Container DNS is meant to keep a a dedicated DNS cache for each container for sp
 3. PopTracker.py
     - Keep track of containers and threshold for IPs
 
-## Install and test
+## Install and test (Tested on Ubuntu 18.04)
 
-First clone the repository and install the required modules in a virtual environment:
+1. First clone the repository and install the required modules in a virtual environment:
 
 ```bash
 python -m venv venv
@@ -21,21 +21,35 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Then, you need to download tshark for your distribution:
+2. Then, you need to download tshark for your distribution:
 
 ```bash
 sudo apt-get install tshark
 sudo pacman -Sy wireshark-cli
 ```
-Then you will also need `docker` and `start/enable` the docker service. 
+3. Then you will also need `docker` and `start/enable` the docker service. 
 
-Then you can test that the program  works by running a container and pinging a URL:
+4. Go to the project directory and create a folder inside called _test_ (this will be used for bind mounting)
 
-```bash
-docker run -it --rm archlinux bash -c "ping espn.com"
+5. Build the container using the provided Dockerfile. We named the container _project_
+```
+docker build -t project .
 ```
 
-## TODO
+6. Run the container
+```
+docker run -it -v /media/sf_Project/Iter1/test:/etc project
+```
+This will lauch the container and give access to a bash shell.
+
+7. Send a ping command. An example is given below
+```
+ping -c 1 yahoo.com
+```
+
+When the command finishes executing, open the hosts file inside the _test_ directory and the updates will be reflected
+
+## TODO (in terms of code)
 
 1. Reimplement the modules in C
 2. Popularity Tracker
@@ -47,3 +61,4 @@ docker run -it --rm archlinux bash -c "ping espn.com"
     - Probably need to use OS package or something else to query the system for the list of network devices because I don't think docker api has that information
 5. Get container to run the HostsManager as a daemon
 6. Get Middleware to communicate with the HostsManager and PopTracker
+7. Remove hardcoded values
