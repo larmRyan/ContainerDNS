@@ -9,7 +9,7 @@ Container DNS is meant to keep a a dedicated DNS cache for each container for sp
     - Captures packets and communicates with the other modules to make updates to the /etc/hosts file
 
 3. PopTracker.py
-    - Keep track of containers and threshold for IPs
+    - Keep track of containers and threshold for requests/responses
 
 ## Install and test (Tested on Ubuntu 18.04)
 
