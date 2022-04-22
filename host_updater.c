@@ -16,15 +16,36 @@ char* get_dns_entry() {
 }
 
 void write_to_hosts(FILE* read_path) {
-    char buff[buff_len];
-    while(fgets(buff, buff_len, read_path)) {
-        printf("%s\n", buff);
+    // char buff[buff_len];
+    // while(fgets(buff, buff_len, read_path)) {
+    //     printf("%s\n", buff);
 
+    // }
+    char* line = NULL;
+    ssize_t len = 0;
+    ssize_t nread;
+    if ((nread = getline(&line, &len, read_path)) == -1) {
+        // If file was empty
+        char * dns_entry = get_dns_entry();
+        fputs(dns_entry, read_path);
     }
+    else{
+        rewind(read_path);
+        while ((nread = getline(&line, &len, read_path)) != -1) {
+            char* dns_entry = get_dns_entry();
+            printf("%s\n", line);
+            // Write to file if entry did not already exist
+            // TODO: Remove spaces in both entries
+            if(strcmp(dns_entry, line) != 0) {
+                fputs(dns_entry, read_path);
+            }
+        }
+    }
+    free(line);
 }
 
 int main() {
-    char* host_path = "/home/ubuntu/522_project/ContainerDNS/test/hosts";
+    char* host_path = "/home/ubuntu/522/ContainerDNS/test/hosts";
     FILE *read_fp  = fopen(host_path, "r+");
     write_to_hosts(read_fp);
     fclose(read_fp);
