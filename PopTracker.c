@@ -71,7 +71,10 @@ void add_container(tree_t *tree, in_addr_t ip, in_addr_t con) {
     node_t *node = search_tree(tree, ip);
 
     for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) {
-        if(node->containers[i] == 0) {
+        
+        if(node->containers[i] == con) { // already in the list
+            return;
+        } else if(node->containers[i] == 0) {
             node->containers[i] = con;
         }
     }
@@ -122,7 +125,7 @@ void transplant(tree_t *tree, node_t *u, node_t *v) {
 }
 
 /**
- * Removes node from tree
+ * Removes give node from tree
  */ 
 void remove_tree(tree_t *tree, node_t* node) {
     node_t *y = NULL;
@@ -152,10 +155,17 @@ node_t *minimum(node_t *node) {
     return node;
 }
 
-void clear_tree(node_t *node) {
+void free_node(node_t *node) {
     if(node != NULL) {
-        clear_tree(node->left);
-        clear_tree(node->right);
+        free(node->containers);
+        free(node);
+    }
+}
+
+void free_tree(node_t *node) {
+    if(node != NULL) {
+        free_tree(node->left);
+        free_tree(node->right);
         free(node->containers);
         free(node);
     }

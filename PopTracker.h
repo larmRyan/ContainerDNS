@@ -28,4 +28,5 @@ tree_t *create_tree(in_addr_t ip, int thresh);
 int list_full(tree_t *tree, in_addr_t ip);
 node_t *create_tree_node(in_addr_t ip);
 node_t *minimum(node_t *node);
-void clear_tree(node_t *node);
+void free_tree(node_t *node);
+void free_node(node_t *node);

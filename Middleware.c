@@ -1,3 +1,4 @@
+#include "PopTracker.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -8,7 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-// #include "PopTracker.h"
+#include "PopTracker.h"
 
 
 #define MAX_BYTES 100
@@ -16,6 +17,7 @@
 #define IP 0
 #define URL 1
 #define CON 2
+#define THRESHOLD 1
 
 
 /** https://www.tutorialspoint.com/c_standard_library/c_function_strtok.htm */
@@ -45,7 +47,6 @@ char **parse_data(char *data) {
 int main() {
 
     char buf[MAX_BYTES];
-    ssize_t num_bytes;
     char *fifo_path = "/tmp/cdns";
     
     // Open the named pipe for reading
@@ -55,14 +56,44 @@ int main() {
         exit(-1);
     }
 
+    tree_t *tree;
+
     while(1) {
         if(read(pfd, buf, MAX_BYTES) > 0) {
             char **data = parse_data(buf);
 
             if(data != NULL) {
-                char *ip = data[IP];
+
+                in_addr_t ip = inet_addr(data[IP]);
+                in_addr_t con = inet_addr(data[CON]);
                 char *url = data[URL];
-                char *con = data[CON];
+
+                if(tree == NULL) {
+                    tree = create_tree(ip, THRESHOLD);
+                } 
+
+                // Search for the node given the IP
+                // and create the node if it doesn't
+                // exist
+                node_t *node = search_tree(tree, ip);
+                if(node == NULL) {
+                    insert_tree(tree, ip);
+                }
+
+                // Add the container's IP to the list
+                // Won't add duplicates
+                add_container(tree, ip, con);
+
+                // Check if the threshold has been met
+                // Remove the given node and update 
+                // the file
+                if(list_full(tree, ip)) {
+                    remove_tree(tree, node);
+
+                    // TODO: update the file
+                    
+                    free_node(node);
+                }
             }
             
         }
