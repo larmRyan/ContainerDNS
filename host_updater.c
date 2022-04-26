@@ -53,7 +53,8 @@ void get_directories(char* parent_dir) {
             }
             if(S_ISDIR(st.st_mode)) {
                 host_files[i] = (char*)malloc(255 * sizeof(char));
-                sprintf(host_files[i], dir_entry->d_name);
+                sprintf(host_files[i], parent_dir);
+                sprintf(host_files[i] + strlen(host_files[i]), dir_entry->d_name);
                 sprintf(host_files[i] + strlen(host_files[i]), "/hosts");
                 printf("%s\n", host_files[i]);
                 i++;
@@ -134,6 +135,7 @@ int main() {
             printf("%s\n", host_files[i]);
             FILE *read_fp  = fopen(host_files[i], "r+");
             write_to_hosts(read_fp);
+            fflush(read_fp);
             fclose(read_fp);
         }
     }
