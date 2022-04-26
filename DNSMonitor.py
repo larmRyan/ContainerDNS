@@ -28,7 +28,7 @@ def main(sniffer):
     
     # start packet capture and parse responses
     capture = sniffer.get_capture()
-    for packet in catpure.sniff_continuously():
+    for packet in capture.sniff_continuously():
         if address_field in packet.dns.field_names:
             ip = packet.dns.get(address_field)
             url = packet.dns.get(url_field)
@@ -36,7 +36,7 @@ def main(sniffer):
 
             # Write to the fifo
             with open(path, "w") as fifo:
-                fifo.write(ip + ":" + url + ":" + con)
+                fifo.write(ip + ":" + url + "*" + con)
                 fifo.flush()
             
 

@@ -24,12 +24,12 @@
 char **parse_data(char *data) {
 
     static char *ret[3];
-    char *example = "127.0.0.1:google.com:192.168.0.1";
-    char *delim = ":";
+    char *example = "127.0.0.1:google.com";
+    char *delim = "*";
 
     int i = 0;
 
-    char *token = strtok(example, delim);
+    char *token = strtok(data, delim);
     while(token != NULL) {
         ret[i] = token;
         token = strtok(NULL, delim);
@@ -37,7 +37,7 @@ char **parse_data(char *data) {
     }
 
     // We're missing data or wrong string sent over the pipe
-    if(i != 2) {
+    if(i != 1) {
         return NULL;
     }
 
@@ -65,7 +65,6 @@ int main() {
             if(data != NULL) {
 
                 in_addr_t ip = inet_addr(data[IP]);
-                in_addr_t con = inet_addr(data[CON]);
                 char *url = data[URL];
 
                 if(tree == NULL) {
@@ -80,9 +79,7 @@ int main() {
                     insert_tree(tree, ip);
                 }
 
-                // Add the container's IP to the list
-                // Won't add duplicates
-                add_container(tree, ip, con);
+                add_container(tree, ip);
 
                 // Check if the threshold has been met
                 // Remove the given node and update 
