@@ -8,6 +8,35 @@
 #define buff_len 255
 char* entries[2];
 char* host_files[255];                      // Paths to hosts files of containers
+char url[255];
+char ip[255];
+
+void sniff_packet(char* buff) {
+    FILE* pipe_fd = popen(buff, "r");
+    if (!pipe_fd) {
+        fprintf(stderr, "popen failed.\n");
+    }
+
+    char buffer[2048];
+    while (NULL != fgets(buffer, sizeof(buffer), pipe_fd)) {
+        // split on newline
+        char* token = strtok(buffer, "\n");
+        // Split first half
+        token = strtok(token, "A");
+        // Split second half and get URL
+        token = strtok(NULL, "A");
+        if(token != NULL) {
+            strcpy(url, token);
+            while (token != NULL)
+            {
+                token = strtok(NULL, "A");
+                strcpy(ip, token);
+                break;
+            }
+        }
+    }
+    pclose(pipe_fd);
+}
 
 void get_directories(char* parent_dir) {
     int i=0;
@@ -88,9 +117,19 @@ void write_to_hosts(FILE* read_path) {
 }
 
 int main() {
+    // Packet sniffing initialization
+    char buff[1024];
+    sprintf(buff, "tshark -i ");
+    sprintf(buff + strlen(buff), "docker0");
+    sprintf(buff + strlen(buff), " -f \"udp src port 53\" -a ");
+    sprintf(buff + strlen(buff), "duration:3");
+    
+    // File writing initialization
     char* host_path = "/home/ubuntu/522/ContainerDNS/test/";
     get_directories(host_path);
     while(1) {
+        sniff_packet(buff);
+        printf("IP: %s \t URL: %s\n", ip, url);
         for(int i=0; i<2; i++) {
             printf("%s\n", host_files[i]);
             FILE *read_fp  = fopen(host_files[i], "r+");

@@ -25,16 +25,16 @@ void sniff_packet() {
             token = strtok(token, "A");
             // Split second half and get URL
             token = strtok(NULL, "A");
-            strcpy(url, token);
-            printf("%s\n", url);
-            printf("%s\n", url);
-            while (token != NULL)
-            {
-                token = strtok(NULL, "A");
-                strcpy(ip, token);
-                printf("%s\n", ip);
-                break;
-                
+            if(token != NULL) {
+                strcpy(url, token);
+                printf("%s\n", url);
+                while (token != NULL)
+                {
+                    token = strtok(NULL, "A");
+                    strcpy(ip, token);
+                    printf("%s\n", ip);
+                    break;
+                }
             }
         }
 
