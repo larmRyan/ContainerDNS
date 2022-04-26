@@ -41,7 +41,6 @@ void packet_processor(u_char* args, const struct pcap_pkthdr *header, const u_ch
     payload_length = header->caplen - (ethernet_header_length + ip_header_length + udp_header_length);
     printf("Payload size: %d bytes\n", payload_length);
     payload = packet + total_headers_size;
-    printf("Memory address where payload begins: %p\n\n", payload);
 
     if (payload_length > 0) {
         const u_char *temp_pointer = payload;
