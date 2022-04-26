@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C++ Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "C/C++: gcc-7 build active file",
+            "miDebuggerPath": "/home/ubuntu/gdb",
+            "MIMode": "gdb",
+        },
+        {
+            "name": "Combined",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/ubuntu/522/ContainerDNS/host_updater",
+            "cwd": "/home/ubuntu/522/ContainerDNS",
+            "preLaunchTask": "combined",
+            "miDebuggerPath": "/home/ubuntu/gdb",
+            "MIMode": "gdb",
+        }
+    ]
+}
