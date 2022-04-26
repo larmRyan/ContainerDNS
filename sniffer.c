@@ -2,55 +2,77 @@
 #include<pcap.h>
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
+#include<string.h>
 
-void packet_processor(u_char* args, const struct pcap_pkthdr *header, const u_char *packet) {
+// Referenced (and modified) from: https://stackoverflow.com/a/49199234
+/* 4 bytes IP address */
+typedef struct ip_address{
+    u_char byte1;
+    u_char byte2;
+    u_char byte3;
+    u_char byte4;
+}ip_address;
+
+/* IPv4 header */
+typedef struct ip_header{
+    u_char  ver_ihl;        // Version (4 bits) + Internet header length (4 bits)
+    u_char  tos;            // Type of service
+    u_short tlen;           // Total length
+    u_short identification; // Identification
+    u_short flags_fo;       // Flags (3 bits) + Fragment offset (13 bits)
+    u_char  ttl;            // Time to live
+    u_char  proto;          // Protocol
+    u_short crc;            // Header checksum
+    ip_address  saddr;      // Source address
+    ip_address  daddr;      // Destination address
+    u_int   op_pad;         // Option + Padding
+}ip_header;
+
+/* UDP header*/
+typedef struct udp_header{
+    u_short sport;          // Source port
+    u_short dport;          // Destination port
+    u_short len;            // Datagram length
+    u_short crc;            // Checksum
+}udp_header;
+
+// DNS header
+typedef struct dns_header{
+    u_short id;             // ID
+    u_char qr;
+    u_int opcode;
+}dns_header;
+
+
+
+void packet_processor(u_char* args, const struct pcap_pkthdr *header, const u_char *pkt_data) {
     // Referenced from: https://www.devdungeon.com/content/using-libpcap-c
-    struct ether_header *eth_header;
-    eth_header = (struct ether_header *) packet;
-    if (ntohs(eth_header->ether_type) != ETHERTYPE_IP) {
-        printf("Not an IP packet. Skipping...\n\n");
-        return;
-    }
-    const u_char *ip_header;
-    const u_char *udp_header;
-    const u_char *payload;
+    ip_header *ih;
+    udp_header *uh;
+    u_int ip_len;
+    u_short sport,dport,udp_len;
+    dns_header *dh;
 
-    int ethernet_header_length = 14; 
-    int ip_header_length;
-    int udp_header_length;
-    int payload_length;
+    /* retrieve the position of the ip header */
+    ih = (ip_header *) (pkt_data + 14); //length of ethernet header
 
-    ip_header = packet + ethernet_header_length;
-    ip_header_length = ((*ip_header) & 0x0F);
-    ip_header_length = ip_header_length * 4;
-    u_char protocol = *(ip_header + 9);
-    if (protocol != IPPROTO_UDP) {
-        printf("Not a UDP packet. Skipping...\n");
-        return;
-    }
+    /* retrieve the position of the udp header */
+    ip_len = (ih->ver_ihl & 0xf) * 4;
+    uh = (udp_header *) ((u_char*)ih + ip_len);
 
-    udp_header = packet + ethernet_header_length + ip_header_length;
-    // Length should be at starting at the 5th byte
-    udp_header_length = ((*(udp_header + 10)) & 0xF0) >> 4;
-    udp_header_length = udp_header_length * 4;
-    printf("UDP header length in bytes: %d\n", udp_header_length);
+    /* convert from network byte order to host byte order */
+    sport = ntohs( uh->sport );
+    dport = ntohs( uh->dport );
+    udp_len = uh->len;
+    printf("LEN: %d\n", udp_len);
+    printf("CRC: %d\n", uh->crc);
+    
 
-    // Get payload offset
-    int total_headers_size = ethernet_header_length+ip_header_length+udp_header_length;
-    printf("Size of all headers combined: %d bytes\n", total_headers_size);
-    payload_length = header->caplen - (ethernet_header_length + ip_header_length + udp_header_length);
-    printf("Payload size: %d bytes\n", payload_length);
-    payload = packet + total_headers_size;
+    // Get DNS header position
+    // dh = (dns_header*)((u_char*)pkt_data + total_headers_size);
+    // printf("ID %d\n", dh->id);
+    // printf("QR:%d\n", ntohs(dh->qr));
 
-    if (payload_length > 0) {
-        const u_char *temp_pointer = payload;
-        int byte_count = 0;
-        while (byte_count++ < payload_length) {
-            printf("%c", *temp_pointer);
-            temp_pointer++;
-        }
-        printf("\n");
-    }
 }
 
 void sniff_packet() {
@@ -58,7 +80,7 @@ void sniff_packet() {
     char err_buff[PCAP_ERRBUF_SIZE];
     pcap_t* handle;
     struct bpf_program filter;
-    char* filter_port = "port 53";               // Capture DNS packets only
+    char* filter_port = "dst port 53";               // Capture DNS packets only
     bpf_u_int32 ip;
 
     // Open interface for listening
