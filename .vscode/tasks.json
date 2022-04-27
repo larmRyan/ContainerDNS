@@ -9,8 +9,7 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
-                "-lpcap"
+                "${fileDirname}/${fileBasenameNoExtension}"
             ],
             "options": {
                 "cwd": "${fileDirname}"
