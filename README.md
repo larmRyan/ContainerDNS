@@ -36,29 +36,36 @@ sudo pacman -Sy wireshark-cli
 docker build -t project .
 ```
 
-6. Run the container
-```
-docker run -it -v <path to project directory>/test/container1:/etc project
-```
-This will lauch the container and give access to a bash shell.
+6. Setup up the Environment
+Since docker bind mounts a host directory to a container directory we can not bind mound the /etc directory of the container to the host. Doing so will overwrite the /etc directory of the container with the bind mount on the host. Instead, we need to create a directory structure that will hold the /etc/hosts file for each container. To do this, please follow the following steps
+- Create a master directory to hold container directories (we call this <projectdir>/test)
+- Inside <projectdir>/test create subdirectories for each container (eg. <projectdir>/test/container1)
+- Inside each of the subdirectories, create a hosts file
 
-6.1 An Example that Shows Two Containers and One Sub-container
+
+7. Run the container
+```
+docker run -it -v <path to project directory>/test/container1/hosts:/etc/hosts project
+```
+This will lauch the container and give access to a bash shell with the hosts file bind-mounted.
+
+7.1 An Example that Shows Two Containers and One Sub-container
 - First launch the first container
 ```
-docker run -it -v <path to project directory>/test/container1:/etc project
+docker run -it -v <path to project directory>/test/container1/hosts:/etc/hosts project
 ```
 - Then launch the second container
 ```
-docker run -it -v <path to project directory>/test/container1/test/container2:/etc -v /var/run/docker.sock:/var/run/docker.sock project
+docker run -it -v <path to project directory>/test/container2/hosts:/etc/hosts -v /var/run/docker.sock:/var/run/docker.sock project
 ```
 The second bind mount gives the container access to the docker socket on the host
-- From within this second container rn the following command
+- From within this second container run the following command
 ```
-docker run -d -v /home/asim/Asim/Study/PhD/Semester2/AdvancedOS/Project/ContainerDNS/test/container2:/etc ubuntu:latest /bin/bash
+docker run -d -v <path to project dir>/test/container3/hosts:/etc/hosts project /bin/bash
 ```
 Since container2 had access to the docker socket on the host, it will run a container in itself but will bind mount directories on the host.
 
-7. Send a ping command from the container. An example is given below
+8. Send a ping command from the container. An example is given below
 ```
 ping -c 1 yahoo.com
 ```
