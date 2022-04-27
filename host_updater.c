@@ -39,10 +39,6 @@ void sniff_packet(char* buff) {
     pclose(pipe_fd);
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> main
 void get_directories(char* parent_dir) {
     int i=0;
     struct dirent* dir_entry;
