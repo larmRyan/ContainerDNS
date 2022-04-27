@@ -38,9 +38,25 @@ docker build -t project .
 
 6. Run the container
 ```
-docker run -it -v <path to project directory>/test:/etc project
+docker run -it -v <path to project directory>/test/container1:/etc project
 ```
 This will lauch the container and give access to a bash shell.
+
+6.1 An Example that Shows Two Containers and One Sub-container
+- First launch the first container
+```
+docker run -it -v <path to project directory>/test/container1:/etc project
+```
+- Then launch the second container
+```
+docker run -it -v <path to project directory>/test/container1/test/container2:/etc -v /var/run/docker.sock:/var/run/docker.sock project
+```
+The second bind mount gives the container access to the docker socket on the host
+- From within this second container rn the following command
+```
+docker run -d -v /home/asim/Asim/Study/PhD/Semester2/AdvancedOS/Project/ContainerDNS/test/container2:/etc ubuntu:latest /bin/bash
+```
+Since container2 had access to the docker socket on the host, it will run a container in itself but will bind mount directories on the host.
 
 7. Send a ping command from the container. An example is given below
 ```
