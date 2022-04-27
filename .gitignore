@@ -1,4 +1,5 @@
-.vscode
 __pycache__
 venv
 test
+host_updater
+sniffer
