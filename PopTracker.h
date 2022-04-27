@@ -12,8 +12,8 @@ typedef struct node {
     struct node *parent;
     in_addr_t ip; // key
     // struct linked_list *list; // list of containers that have requested the key
-    // in_addr_t *containers;
-    int count;
+    in_addr_t *containers;
+    // int count;
 } node_t;
 
 typedef struct tree {
@@ -21,7 +21,7 @@ typedef struct tree {
 } tree_t;
 
 node_t *search_tree(tree_t *tree, in_addr_t ip);
-void add_container(tree_t *tree, in_addr_t ip);
+void add_container(tree_t *tree, in_addr_t ip, in_addr_t con);
 void insert_tree(tree_t *tree, in_addr_t ip);
 void remove_tree(tree_t *tree, node_t *node);
 void transplant(tree_t *tree, node_t *u, node_t *v);

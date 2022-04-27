@@ -17,8 +17,8 @@ node_t *create_tree_node(in_addr_t ip) {
     node->right = NULL;
     node->parent = NULL;
     node->ip = ip;
-    //node->containers = (in_addr_t *) malloc(sizeof(in_addr_t) * threshold);
-    node->count = 0;
+    node->containers = (in_addr_t *) malloc(sizeof(in_addr_t) * threshold);
+    // node->count = 0;
     return node;
 }
 
@@ -56,34 +56,34 @@ node_t *search_tree(tree_t *tree, in_addr_t ip) {
 int list_full(tree_t *tree, in_addr_t ip) {
     node_t *node = search_tree(tree, ip);
 
-    // for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) {
-    //     if(node->containers[i] == 0) {
-    //         return 0;
-    //     }
-    // }
-    if(node != NULL) {
-        if(node->count < threshold) return 0;
+    for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) {
+        if(node->containers[i] == 0) {
+            return 0;
+        }
     }
+    // if(node != NULL) {
+    //     if(node->count < threshold) return 0;
+    // }
     return 1;
 }
 
 /**
  * Adds a new container to the list
  */
-void add_container(tree_t *tree, in_addr_t ip) {
+void add_container(tree_t *tree, in_addr_t ip, in_addr_t con) {
     node_t *node = search_tree(tree, ip);
 
-    // for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) { 
-    //     if(node->containers[i] == con) { // already in the list
-    //         return;
-    //     } else if(node->containers[i] == 0) {
-    //         node->containers[i] = con;
-    //     }
-    // }
-
-    if(node != NULL) {
-        node->count++;
+    for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) { 
+        if(node->containers[i] == con) { // already in the list
+            return;
+        } else if(node->containers[i] == 0) {
+            node->containers[i] = con;
+        }
     }
+
+    // if(node != NULL) {
+    //     node->count++;
+    // }
 }
 
 /**
@@ -163,7 +163,7 @@ node_t *minimum(node_t *node) {
 
 void free_node(node_t *node) {
     if(node != NULL) {
-        // free(node->containers);
+        free(node->containers);
         free(node);
     }
 }
@@ -172,7 +172,7 @@ void free_tree(node_t *node) {
     if(node != NULL) {
         free_tree(node->left);
         free_tree(node->right);
-        // free(node->containers);
+        free(node->containers);
         free(node);
     }
 }
