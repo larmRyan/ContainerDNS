@@ -125,7 +125,7 @@ char* remove_spaces(char* input_string) {
  * @return char* 
  */
 void get_dns_entry() {
-    char* dns_entry = "127.0.0.1    laptop\n";
+    char* dns_entry = "127.0.0.1    localhost123\n";
     // Create a copy with removed spaces
     char* dns_entry_copy = (char*)malloc(strlen(dns_entry) * sizeof(char));
     strncpy(dns_entry_copy, dns_entry, strlen(dns_entry));
@@ -176,6 +176,7 @@ int main() {
     sprintf(buff + strlen(buff), "duration:5");
 
     char *pipe_path = "/tmp/myfifo";
+    if (remove(pipe_path) == 0) printf("Pipe deleted successfully");
 
     // Open new named pipe linking to the Middleware and PopTracker
     int fifo = mkfifo(pipe_path, 0666);
@@ -192,7 +193,7 @@ int main() {
         printf("IP: %s \t URL: %s\n", net_info.ip, net_info.url);
         no_containers = get_container_count(host_path);
         for(int i=0; i<no_containers; i++) {
-            FILE *read_fp  = fopen(host_files[i], "r+");
+            FILE *read_fp  = fopen(host_files[i], "a+");
             write_to_hosts(read_fp);
             fclose(read_fp);
         }
