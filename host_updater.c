@@ -3,6 +3,7 @@
 #include<stdio.h>
 #include<string.h>
 #include<dirent.h>
+#include <fcntl.h>
 #include<sys/stat.h>
 
 #define buff_len 255
@@ -38,6 +39,10 @@ void sniff_packet(char* buff) {
     pclose(pipe_fd);
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 void get_directories(char* parent_dir) {
     int i=0;
     struct dirent* dir_entry;
@@ -117,6 +122,13 @@ void write_to_hosts(FILE* read_path) {
     free(line);
 }
 
+void create_data(char *data, char *ip, char *url) {
+  char delim = "*";
+  strncat(data, ip, 255);
+  strncat(data, delim, 1);
+  strncat(data, url, 255);
+}
+
 int main() {
     // Packet sniffing initialization
     char buff[1024];
@@ -124,6 +136,15 @@ int main() {
     sprintf(buff + strlen(buff), "docker0");
     sprintf(buff + strlen(buff), " -f \"udp src port 53\" -a ");
     sprintf(buff + strlen(buff), "duration:3");
+
+    char pipe_path = "/tmp/cdns";
+
+    // Open new named pipe linking to the Middleware and PopTracker
+    int fifo = mkfifo(pipe_path, 0666);
+    if(fifo == -1) {
+      fprintf(stderr, "Couldn't create the pipe for publishing data to middleware");
+      exit(-1);
+    }
     
     // File writing initialization
     char* host_path = "/home/ubuntu/522/ContainerDNS/test/";
@@ -135,9 +156,22 @@ int main() {
             printf("%s\n", host_files[i]);
             FILE *read_fp  = fopen(host_files[i], "r+");
             write_to_hosts(read_fp);
-            fflush(read_fp);
             fclose(read_fp);
         }
+
+        int ffd = open(pipe_path, O_WRONLY);
+
+        if(ffd < 0) {
+          fprintf(stderr, "Counldn't open the pipe for writing");
+          exit(-1);
+        }
+
+        // Create the data for the middleware and send it through to 
+        // the named pipe
+        char data[255];
+        create_data(data, ip, url);
+        write(ffd, data, buff_len);
+        close(ffd);
     }
 
     return 0;
