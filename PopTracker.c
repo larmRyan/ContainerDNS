@@ -55,7 +55,6 @@ int list_full(tree_t *tree, in_addr_t ip) {
     node_t *node = search_tree(tree, ip);
 
     for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) {
-        printf("%d\n", node->containers[i]);
         if(node->containers[i] == 0) {
             return 0;
         }
