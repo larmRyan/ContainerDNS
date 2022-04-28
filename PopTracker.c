@@ -1,5 +1,3 @@
-#pragma once
-
 #include "PopTracker.h"
 
 int threshold = 1;
