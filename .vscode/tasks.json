@@ -30,8 +30,9 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${fileDirname}/*.c",
-                //"${fileDirname}\\**.h",
+                "${fileDirname}/Middleware.c",
+                "${fileDirname}/host_updater.c",
+                "${fileDirname}/PopTracker.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
             ],

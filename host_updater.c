@@ -1,7 +1,7 @@
 #include "host_updater.h"
 
 char* entries[2];
-char* host_files[255];
+char* host_files_list[255];
 
 /** https://stackoverflow.com/questions/3501338/c-read-file-line-by-line */
 /** 
@@ -15,7 +15,7 @@ void remove_entry(char *file, char *ip) {
     size_t len = 0;
     ssize_t read;
 
-    FILE *fp = fopen(file, "r");
+    FILE *fp = fopen(file, "w+");
     
     if(fp == NULL) {
         fprintf(stderr, "File pointer is NULL");
@@ -24,33 +24,43 @@ void remove_entry(char *file, char *ip) {
 
     // Copy all but the one line that we want to remove
     int i = 0;
+    int pos;
+    int found = 0;
     while((read = getline(&line, &len, fp)) != -1) {
         
         // Get the IP address from the current line
-        char *token = strtok(line, "\t");
+        char *token = strtok(line, " ");
 
         // Remove only the line that contains the IP address
-        if(strcmp(ip, token) != 0) {
-            lines[i] = line;
-            i++;
+        if(strcmp(ip, token) == 0) {
+            // IP matches. Go back one line
+            pos = ftell(fp);
+            found = 1;
+            break;
         }
     }
-
-    if(fclose(fp) < 0) {
-        fprintf(stderr, "Couldn't close the file after copying");
-        exit(-1);
+    if(found == 1) {
+        fseek(fp, pos, SEEK_SET);
+        // rewind(fp);
+        fputs("                                                                                                          ", fp);
     }
+    fclose(fp);
+
+    // if(fclose(fp) < 0) {
+    //     fprintf(stderr, "Couldn't close the file after copying");
+    //     exit(-1);
+    // }
     
-    // Reopen the file to overwrite it
-    fp = fopen(file, "w");
-    for(int j = 0; j < i; j++) {
-        fputs(lines[j], fp);
-    }
+    // // Reopen the file to overwrite it
+    // fp = fopen(file, "w");
+    // for(int j = 0; j < i; j++) {
+    //     fputs(lines[j], fp);
+    // }
 
-    if(fclose(fp) < 0) {
-        fprintf(stderr, "Couldn't close the file to rewrite");
-        exit(-1);
-    }
+    // if(fclose(fp) < 0) {
+    //     fprintf(stderr, "Couldn't close the file to rewrite");
+    //     exit(-1);
+    // }
 
 }
 
@@ -68,11 +78,10 @@ void get_directories(char* parent_dir) {
                 continue;
             }
             if(S_ISDIR(st.st_mode)) {
-                host_files[i] = (char*)malloc(255 * sizeof(char));
-                sprintf(host_files[i], parent_dir);
-                sprintf(host_files[i] + strlen(host_files[i]), dir_entry->d_name);
-                sprintf(host_files[i] + strlen(host_files[i]), "/hosts");
-                printf("%s\n", host_files[i]);
+                host_files_list[i] = (char*)malloc(255 * sizeof(char));
+                sprintf(host_files_list[i], parent_dir, "%s");
+                sprintf(host_files_list[i] + strlen(host_files_list[i]), dir_entry->d_name, "%s");
+                sprintf(host_files_list[i] + strlen(host_files_list[i]), "/hosts");
                 i++;
             }
         }
@@ -115,36 +124,47 @@ char* remove_spaces(char* input_string) {
     return trimmed;
 }
 
-void get_dns_entry() {
-    char* dns_entry = "127.0.0.1    localhost123\n";
+void get_dns_entry(char* IP, char* URL) {
     // Create a copy with removed spaces
-    char* dns_entry_copy = (char*)malloc(strlen(dns_entry) * sizeof(char));
-    strncpy(dns_entry_copy, dns_entry, strlen(dns_entry));
+    char dns_entry[1024];
+    char* dns_entry_copy[1024];
+    sprintf(dns_entry, IP, "%s");
+    sprintf(dns_entry + strlen(dns_entry), " ");
+    sprintf(dns_entry + strlen(dns_entry), URL, "%s");
     entries[0] = dns_entry;
     // Remove spaces from entry
-    char* trimmed = remove_spaces(dns_entry_copy);
+    char* trimmed = remove_spaces(dns_entry);
     entries[1] = trimmed;
 }
 
-void write_to_hosts(FILE* read_path) {
+void write_to_hosts(FILE* read_path, char* IP, char* URL) {
     char* line = NULL;
     ssize_t len = 0;
     ssize_t nread;
+    int found = 0;
     if ((nread = getline(&line, &len, read_path)) == -1) {
         // If file was empty
-        get_dns_entry();
+        get_dns_entry(IP, URL);
         fputs(entries[0], read_path);
+        fputs("\n", read_path);
     }
     else{
         rewind(read_path);
         while ((nread = getline(&line, &len, read_path)) != -1) {
-            get_dns_entry();
+            get_dns_entry(IP, URL);
             char* trimmed_line = remove_spaces(line);
+            char* temp = (char*)malloc(strlen(entries[1]) * sizeof(char) + 1);
+            sprintf(temp, entries[1], "%s");
+            sprintf(temp + strlen(temp), "\n");
             // Write to file if entry did not already exist
-            if(strcmp(entries[1], trimmed_line) != 0) {
-                // Add original entry (with spaces) to file
-                fputs(entries[0], read_path);
+            if(strcmp(temp, trimmed_line) == 0) {
+                found = 1;
             }
+        }
+        if(found == 0) {
+            printf("Writing entry to container\n");
+            fputs(entries[0], read_path);
+            fputs("\n", read_path);
         }
     }
     free(line);
@@ -184,7 +204,7 @@ void create_data(char *data, char *ip, char *url) {
 //         printf("IP: %s \t URL: %s\n", net_info.ip, net_info.url);
 //         no_containers = get_container_count(host_path);
 //         for(int i=0; i<no_containers; i++) {
-//             FILE *read_fp  = fopen(host_files[i], "a+");
+//             FILE *read_fp  = fopen(host_files_list[i], "a+");
 //             write_to_hosts(read_fp);
 //             fclose(read_fp);
 //         }

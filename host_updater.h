@@ -13,6 +13,6 @@
 void get_directories(char* parent_dir);
 int get_container_count(char* parent_dir);
 char* remove_spaces(char* input_string);
-void get_dns_entry();
-void write_to_hosts(FILE* read_path);
+void get_dns_entry(char* IP, char* URL);
+void write_to_hosts(FILE* read_path, char* IP, char* URL);
 void remove_entry(char *file, char *ip);

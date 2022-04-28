@@ -18,7 +18,7 @@
             "name": "Combined",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/ubuntu/522/ContainerDNS/host_updater",
+            "program": "/home/ubuntu/522/ContainerDNS/Middleware",
             "cwd": "/home/ubuntu/522/ContainerDNS",
             "preLaunchTask": "combined",
             "miDebuggerPath": "/home/ubuntu/gdb",

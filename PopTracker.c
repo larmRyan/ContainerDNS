@@ -55,6 +55,7 @@ int list_full(tree_t *tree, in_addr_t ip) {
     node_t *node = search_tree(tree, ip);
 
     for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) {
+        printf("%d\n", node->containers[i]);
         if(node->containers[i] == 0) {
             return 0;
         }
@@ -72,10 +73,12 @@ void add_container(tree_t *tree, in_addr_t ip, in_addr_t con) {
     node_t *node = search_tree(tree, ip);
 
     for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) { 
-        if(node->containers[i] == con) { // already in the list
-            return;
-        } else if(node->containers[i] == 0) {
-            node->containers[i] = con;
+        if(node != NULL) {
+            if(node->containers[i] == con) { // already in the list
+                return;
+            } else if(node->containers[i] == 0) {
+                node->containers[i] = con;
+            }
         }
     }
 
@@ -133,22 +136,24 @@ void transplant(tree_t *tree, node_t *u, node_t *v) {
  */ 
 void remove_tree(tree_t *tree, node_t* node) {
     node_t *y = NULL;
-    if(node->left == NULL) {
-        transplant(tree, node, node->right);
-    } else if(node->right == NULL) {
-        transplant(tree, node, node->left);
-    } else {
-        y = minimum(node->right);
+    if(node != NULL) {
+        if(node->left == NULL) {
+            transplant(tree, node, node->right);
+        } else if(node->right == NULL) {
+            transplant(tree, node, node->left);
+        } else {
+            y = minimum(node->right);
 
-        if(y->parent != node) {
-            transplant(tree, y, y->right);
-            y->right = node->right;
-            y->right->parent = y;
+            if(y->parent != node) {
+                transplant(tree, y, y->right);
+                y->right = node->right;
+                y->right->parent = y;
+            }
+
+            transplant(tree, node, y);
+            y->left = node->left;
+            y->left->parent = y;
         }
-
-        transplant(tree, node, y);
-        y->left = node->left;
-        y->left->parent = y;
     }
 }
 
