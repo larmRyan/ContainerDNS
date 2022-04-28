@@ -1,6 +1,16 @@
-#pragma once
-
-#include "LinkedList.h"
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/inotify.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 
 /**
@@ -11,8 +21,7 @@ typedef struct node {
     struct node *right;
     struct node *parent;
     in_addr_t ip; // key
-    // struct linked_list *list; // list of containers that have requested the key
-    in_addr_t *containers;
+    in_addr_t *containers; // list of container IPs that have requested the IP
     // int count;
 } node_t;
 

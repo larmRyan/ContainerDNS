@@ -1,59 +1,57 @@
-#define _GNU_SOURCE
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
-#include<dirent.h>
-#include <fcntl.h>
-#include<sys/stat.h>
-#include<unistd.h>
+#include "host_updater.h"
 
-#define buff_len 255
 char* entries[2];
-char* host_files[255];                      // Paths to hosts files of containers
-// char url[255];
-// char ip[255];
-// char container_ip[255];
+char* host_files[255];
 
-typedef struct network_info {
-    char url[255];
-    char ip[255];
-    char container_ip[255];
-}network_info;
+/** https://stackoverflow.com/questions/3501338/c-read-file-line-by-line */
+/** 
+ * Opens the file to copy the content currently there
+ * and will overwrite the file with the copied content
+ * minus the one line that contains the ip address
+ */
+void remove_entry(char *file, char *ip) {
+    char *lines[255];
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
 
-network_info net_info;
-
-void sniff_packet(char* buff) {
-    FILE* pipe_fd = popen(buff, "r");
-    if (!pipe_fd) {
-        fprintf(stderr, "popen failed.\n");
+    FILE *fp = fopen(file, "r");
+    
+    if(fp == NULL) {
+        fprintf(stderr, "File pointer is NULL");
+        return;
     }
 
-    char buffer[2048];
-    char buffer2[2048];
-    while (NULL != fgets(buffer, sizeof(buffer), pipe_fd)) {
-        strcpy(buffer2, buffer);
-        // split on newline
-        char* token = strtok(buffer, "\n");
-        char* token2 = strtok(buffer2, "DNS");
-        token2 = strtok(token2, "→");
-        token2 = strtok(NULL, " ");
-        token2 = strtok(NULL, " ");
-        strcpy(net_info.container_ip, token2);
-        // Split first half
-        token = strtok(token, "A");
-        // Split second half and get URL
-        token = strtok(NULL, "A");
-        if(token != NULL) {
-            strcpy(net_info.url, token);
-            while (token != NULL)
-            {
-                token = strtok(NULL, "A");
-                strcpy(net_info.ip, token);
-                break;
-            }
+    // Copy all but the one line that we want to remove
+    int i = 0;
+    while((read = getline(&line, &len, fp)) != -1) {
+        
+        // Get the IP address from the current line
+        char *token = strtok(line, "\t");
+
+        // Remove only the line that contains the IP address
+        if(strcmp(ip, token) != 0) {
+            lines[i] = line;
+            i++;
         }
     }
-    pclose(pipe_fd);
+
+    if(fclose(fp) < 0) {
+        fprintf(stderr, "Couldn't close the file after copying");
+        exit(-1);
+    }
+    
+    // Reopen the file to overwrite it
+    fp = fopen(file, "w");
+    for(int j = 0; j < i; j++) {
+        fputs(lines[j], fp);
+    }
+
+    if(fclose(fp) < 0) {
+        fprintf(stderr, "Couldn't close the file to rewrite");
+        exit(-1);
+    }
+
 }
 
 void get_directories(char* parent_dir) {
@@ -101,8 +99,6 @@ int get_container_count(char* parent_dir) {
                 containers++;
             }
         }
-        
-        
     }
     closedir(src);
     return containers;
@@ -119,11 +115,6 @@ char* remove_spaces(char* input_string) {
     return trimmed;
 }
 
-/**
- * @brief Parse DNS query to get hosts entry to add to hosts file
- * 
- * @return char* 
- */
 void get_dns_entry() {
     char* dns_entry = "127.0.0.1    localhost123\n";
     // Create a copy with removed spaces
@@ -166,52 +157,52 @@ void create_data(char *data, char *ip, char *url) {
   strncat(data, url, 255);
 }
 
-int main() {
-    // Packet sniffing initialization
-    char buff[1024];
-    int no_containers = 0;
-    sprintf(buff, "tshark -i ");
-    sprintf(buff + strlen(buff), "docker0");
-    sprintf(buff + strlen(buff), " -f \"udp src port 53\" -a ");
-    sprintf(buff + strlen(buff), "duration:5");
+// int main() {
+//     // Packet sniffing initialization
+//     char buff[1024];
+//     int no_containers = 0;
+//     sprintf(buff, "tshark -i ");
+//     sprintf(buff + strlen(buff), "docker0");
+//     sprintf(buff + strlen(buff), " -f \"udp src port 53\" -a ");
+//     sprintf(buff + strlen(buff), "duration:5");
 
-    char *pipe_path = "/tmp/myfifo";
-    if (remove(pipe_path) == 0) printf("Pipe deleted successfully");
+//     char *pipe_path = "/tmp/myfifo";
+//     if (remove(pipe_path) == 0) printf("Pipe deleted successfully");
 
-    // Open new named pipe linking to the Middleware and PopTracker
-    int fifo = mkfifo(pipe_path, 0666);
-    if(fifo == -1) {
-      fprintf(stderr, "Couldn't create the pipe for publishing data to middleware\n");
-      exit(-1);
-    }
+//     // Open new named pipe linking to the Middleware and PopTracker
+//     int fifo = mkfifo(pipe_path, 0666);
+//     if(fifo == -1) {
+//       fprintf(stderr, "Couldn't create the pipe for publishing data to middleware\n");
+//       exit(-1);
+//     }
     
-    // File writing initialization
-    char* host_path = "/home/ubuntu/522/ContainerDNS/test/";
-    get_directories(host_path);
-    while(1) {
-        sniff_packet(buff);
-        printf("IP: %s \t URL: %s\n", net_info.ip, net_info.url);
-        no_containers = get_container_count(host_path);
-        for(int i=0; i<no_containers; i++) {
-            FILE *read_fp  = fopen(host_files[i], "a+");
-            write_to_hosts(read_fp);
-            fclose(read_fp);
-        }
+//     // File writing initialization
+//     char* host_path = "/home/ubuntu/522/ContainerDNS/test/";
+//     get_directories(host_path);
+//     while(1) {
+//         sniff_packet(buff);
+//         printf("IP: %s \t URL: %s\n", net_info.ip, net_info.url);
+//         no_containers = get_container_count(host_path);
+//         for(int i=0; i<no_containers; i++) {
+//             FILE *read_fp  = fopen(host_files[i], "a+");
+//             write_to_hosts(read_fp);
+//             fclose(read_fp);
+//         }
 
-        int ffd = open(pipe_path, O_WRONLY);
+//         int ffd = open(pipe_path, O_WRONLY);
 
-        if(ffd < 0) {
-          fprintf(stderr, "Counldn't open the pipe for writing");
-          exit(-1);
-        }
+//         if(ffd < 0) {
+//           fprintf(stderr, "Counldn't open the pipe for writing");
+//           exit(-1);
+//         }
 
-        // Create the data for the middleware and send it through to 
-        // the named pipe
-        char data[255];
-        create_data(data, net_info.ip, net_info.url);
-        write(ffd, data, buff_len);
-        close(ffd);
-    }
+//         // Create the data for the middleware and send it through to 
+//         // the named pipe
+//         char data[255];
+//         create_data(data, net_info.ip, net_info.url);
+//         write(ffd, data, buff_len);
+//         close(ffd);
+//     }
 
-    return 0;
-}
+//     return 0;
+// }

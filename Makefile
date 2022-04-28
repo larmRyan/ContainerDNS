@@ -1,8 +1,10 @@
 CC=gcc
-TARGET=Middleware
+MIDDLEWARE=Middleware
+SNIFFER=sniffer
 
 all:
-	$(CC) Middleware.c -o $(TARGET)
+	$(CC) Middleware.c PopTracker.c PopTracker.h host_updater.c host_updater.h -o $(MIDDLEWARE)
+	$(CC) sniffer.c -o $(SNIFFER)
 
 clean:
-	rm $(TARGET)
+	rm Middleware sniffer
