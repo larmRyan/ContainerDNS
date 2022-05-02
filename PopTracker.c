@@ -15,7 +15,10 @@ node_t *create_tree_node(in_addr_t ip) {
     node->right = NULL;
     node->parent = NULL;
     node->ip = ip;
-    node->containers = (in_addr_t *) malloc(sizeof(in_addr_t) * threshold);
+    node->containers = (in_addr_t *)calloc(threshold, sizeof(in_addr_t));
+    for(int i=0; i<threshold; i++) {
+        printf("%d\n", node->containers[i]);
+    }
     // node->count = 0;
     return node;
 }
@@ -54,7 +57,7 @@ node_t *search_tree(tree_t *tree, in_addr_t ip) {
 int list_full(tree_t *tree, in_addr_t ip) {
     node_t *node = search_tree(tree, ip);
 
-    for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) {
+    for(int i = 0; i < threshold; i ++) {
         if(node->containers[i] == 0) {
             return 0;
         }
@@ -71,12 +74,13 @@ int list_full(tree_t *tree, in_addr_t ip) {
 void add_container(tree_t *tree, in_addr_t ip, in_addr_t con) {
     node_t *node = search_tree(tree, ip);
 
-    for(int i = 0; i < threshold * sizeof(in_addr_t); i += sizeof(in_addr_t)) { 
+    for(int i = 0; i < threshold; i ++) { 
         if(node != NULL) {
             if(node->containers[i] == con) { // already in the list
                 return;
             } else if(node->containers[i] == 0) {
                 node->containers[i] = con;
+                return;
             }
         }
     }

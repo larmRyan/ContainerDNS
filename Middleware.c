@@ -22,7 +22,7 @@
 #define IP 0
 #define URL 1
 #define CON 2
-int THRESHOLD = 3;
+int THRESHOLD = 2;
 
 char* entries_list[2];
 extern char* host_files_list[255];
