@@ -40,7 +40,7 @@ docker build -t project .
 
 6. Setup up the Environment
 - Since docker bind mounts a host directory to a container directory we can not bind mound the /etc directory of the container to the host. Doing so will overwrite the /etc directory of the container with the bind mount on the host. Instead, we need to create a directory structure that will hold the /etc/hosts file for each container. To do this, please follow the following steps
-- Create a master directory to hold container directories (we call this &ltprojectdir>/test)
+- Create a master directory to hold container directories (we call this &lt;projectdir>/test)
 - Inside <projectdir>/test create subdirectories for each container (eg. <projectdir>/test/container1)
 - Inside each of the subdirectories, create a hosts file
 
